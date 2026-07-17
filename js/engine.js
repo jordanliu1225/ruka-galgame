@@ -230,11 +230,13 @@ function doChoice(inst) {
 
 /* ---------- 好感度 / 條件 ---------- */
 function applyAff(map) {
+  const parts = [];
   for (const [id, d] of Object.entries(map)) {
     state.aff[id] = (state.aff[id] || 0) + d;
     const c = GAME.characters[id];
-    if (c) toast(`${d > 0 ? "❤" : "💔"} ${c.name} 好感度 ${d > 0 ? "+" : ""}${d}`);
+    if (c && d) parts.push(`${d > 0 ? "❤" : "💔"}${c.name}${d > 0 ? "+" : ""}${d}`);
   }
+  if (parts.length) toast(parts.join("  "));
   renderAffHud();
 }
 function renderAffHud() {
@@ -282,8 +284,9 @@ function pickTopAff(map) {
     const v = state.aff[id] || 0;
     if (v > bestV) { bestV = v; best = id; }
   }
+  // 只有「最高分同分並列」才走 _default(好感度可為 0 或負數,最高者照樣進路線)
   const tied = ids.filter((id) => (state.aff[id] || 0) === bestV).length > 1;
-  if ((bestV <= 0 || tied) && map._default) return map._default;
+  if (tied && map._default) return map._default;
   return map[best];
 }
 
