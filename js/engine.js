@@ -220,6 +220,7 @@ function doChoice(inst) {
       state.log.push({ name: "▶ 選擇", text: opt.text });
       if (opt.aff) applyAff(opt.aff);
       if (opt.flag) Object.assign(state.flags, opt.flag);
+      if (opt.add) applyAdd(opt.add);
       if (opt.jump) gotoScene(opt.jump); else state.index++;
       run();
     });
@@ -255,9 +256,24 @@ function matchCond(cond) {
     op === ">"  ? a >  b :
     op === "<"  ? a <  b :
     op === "!=" ? a != b : a == b;
-  if (cond.aff)  { const [id, op, v] = cond.aff;  return cmp(state.aff[id] || 0, op, v); }
-  if (cond.flag) { const [k, op, v] = cond.flag;  return cmp(state.flags[k], op, v); }
+  if (cond.aff)    { const [id, op, v] = cond.aff;  return cmp(state.aff[id] || 0, op, v); }
+  if (cond.flag)   { const [k, op, v] = cond.flag;  return cmp(state.flags[k], op, v); }
+  if (cond.affGap) { const [op, v] = cond.affGap;   return cmp(affGap(), op, v); }
   return false;
+}
+// 可攻略角色之間「最高好感度 - 最低好感度」的差距(後宮結局判定用)
+function affGap() {
+  const vals = Object.entries(GAME.characters)
+    .filter(([, c]) => c.romanceable)
+    .map(([id]) => state.aff[id] || 0);
+  if (!vals.length) return 0;
+  return Math.max(...vals) - Math.min(...vals);
+}
+// 數值旗標累加(問答計分用):{ add: { 答對: 1 } }
+function applyAdd(map) {
+  for (const [k, n] of Object.entries(map)) {
+    state.flags[k] = (Number(state.flags[k]) || 0) + n;
+  }
 }
 function pickTopAff(map) {
   const ids = Object.keys(map).filter((k) => k !== "_default");
@@ -295,6 +311,7 @@ function run() {
     if (inst.hide) hideChar(inst.hide);
     if (inst.aff) applyAff(inst.aff);
     if (inst.flag) Object.assign(state.flags, inst.flag);
+    if (inst.add) applyAdd(inst.add);
     if (inst.bgm !== undefined) playBgm(inst.bgm);
 
     if (inst.jump && inst.if && matchCond(inst.if)) { gotoScene(inst.jump); continue; }
