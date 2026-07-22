@@ -1,10 +1,11 @@
 name: Deploy to GitHub Pages
 
 # Pages 的發布來源是 gh-pages 分支(推 gh-pages 分支時 GitHub 會自動建置部署)。
-# 這個工作流程的職責:每次 push main,就把 main 完整鏡像到 gh-pages。
+# 這個工作流程的職責:把 main 完整鏡像到 gh-pages。
+#
+# ※ 目前網站「暫時下架」中:自動觸發(push main)已停用,只留手動觸發。
+#   要重新上架:把下面的 push 觸發加回來,或直接執行 `git push origin main:gh-pages`。
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
